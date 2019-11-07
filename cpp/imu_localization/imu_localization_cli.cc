@@ -37,7 +37,7 @@ DEFINE_bool(run_global, true, "Run global optimization at the end");
 DEFINE_bool(tango_ori, false, "Use ground truth orientation");
 using namespace std;
 
-// ./IMULocalization_cli /opt/tmp/data_publish_v2/tang_handheld2 -model_path /opt/tmp/svr_cascade0308/
+// ./IMULocalization_cli /opt/tmp/data_publish_v2/tang_handheld2 -logtostderr=false -model_path /opt/tmp/svr_cascade0308/
 
 int main(int argc, char **argv) {
   if (argc < 2) {
@@ -62,6 +62,8 @@ int main(int argc, char **argv) {
   const std::vector<Eigen::Vector3d> &linacce = dataset.GetLinearAcceleration();
   const std::vector<Eigen::Vector3d> &gravity = dataset.GetGravity();
   const std::vector<Eigen::Vector3d> &magnet = dataset.GetMagnet();
+
+  LOG(INFO) << "Inpuit size: " << N;
 
   std::vector<Eigen::Quaterniond> orientation;
   if (FLAGS_tango_ori) {
@@ -130,6 +132,7 @@ int main(int argc, char **argv) {
   std::vector<Eigen::Vector3d> output_bias(dataset.GetTimeStamp().size(), Eigen::Vector3d(0, 0, 0));
 
   if (FLAGS_preset == "raw"){
+    LOG(INFO) << "Raw mode";
     // Write trajectory with double integration.
     output_positions.resize(dataset.GetTimeStamp().size(), dataset.GetPosition()[0]);
     output_speed.resize(dataset.GetTimeStamp().size(), Eigen::Vector3d(0, 0, 0));
@@ -154,7 +157,7 @@ int main(int argc, char **argv) {
 
     constexpr int init_capacity = 20000;
 
-    printf("Start adding records...\n");
+    LOG(INFO) << "Start adding records...";
     for (int i = 0; i < N; ++i) {
       trajectory.AddRecord(ts[i], gyro[i], linacce[i], gravity[i], orientation[i]);
       if (i > loc_option.local_opt_window) {
@@ -178,20 +181,18 @@ int main(int argc, char **argv) {
     }
     trajectory.EndTrajectory();
     if (FLAGS_run_global) {
-      printf("Running global optimization on the whole sequence...\n");
+      LOG(INFO) << "Running global optimization on the whole sequence...";
       trajectory.RunOptimization(0, trajectory.GetNumFrames());
     }
-    printf("All done. Number of points on trajectory: %d\n", trajectory.GetNumFrames());
+    LOG(INFO) << "All done. Number of points on trajectory: " << trajectory.GetNumFrames();
     const auto total_time = ((float) cv::getTickCount() - start_t) / (float) cv::getTickFrequency();
     const float fps_all = (float) trajectory.GetNumFrames() / total_time;
-    printf("Time usage: %.3fs. Overall framerate: %.3f\n", total_time, fps_all);
+    LOG(INFO) << "Time usage: " << total_time << ". Overall framerate: " << fps_all;
     const std::vector<float> &time_regression = trajectory.GetRegressionTimes();
     const std::vector<float> &time_optimization = trajectory.GetOptimizationTimes();
-    printf("%d regressions executed; %d optimization executed.\n", static_cast<int>(time_regression.size()),
-           static_cast<int>(time_optimization.size()));
-    printf("Average time for regression: %.3f, average time for optimization: %.3f\n",
-           std::accumulate(time_regression.begin(), time_regression.end(), 0.0f) / time_regression.size(),
-           std::accumulate(time_optimization.begin(), time_optimization.end(), 0.0f) / time_optimization.size());
+    LOG(INFO) << static_cast<int>(time_regression.size()) << " regressions executed; " << static_cast<int>(time_optimization.size()) << " optimization executed.";
+    LOG(INFO) << "Average time for regression: " << std::accumulate(time_regression.begin(), time_regression.end(), 0.0f) / time_regression.size() << 
+", average time for optimization: " << std::accumulate(time_optimization.begin(), time_optimization.end(), 0.0f) / time_optimization.size();
 
     output_positions = trajectory.GetPositions();
     output_speed = trajectory.GetSpeed();
@@ -222,7 +223,7 @@ int main(int argc, char **argv) {
     if (FLAGS_start_portion_length < 0) {
       FLAGS_start_portion_length = static_cast<int>(output_positions.size());
     }
-    printf("Registring start portion. Length: %d\n", FLAGS_start_portion_length);
+    LOG(INFO) << "Registring start portion. Length: " << FLAGS_start_portion_length;
     CHECK_GT(FLAGS_start_portion_length, 3) << "The start portion length must be larger than 3";
     std::vector<Eigen::Vector2d> source;
     std::vector<Eigen::Vector2d> target;

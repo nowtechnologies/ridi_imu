@@ -1,0 +1,7 @@
+{
+  "C_Cpp.default.includePath":[
+    "/usr/include/eigen3/",
+    "/home/balazs/munka/nowtech/repos/nowtechnologies/ridi_imu/cpp/",
+    "/home/balazs/munka/nowtech/repos/nowtechnologies/ridi_imu/cpp/imu_localization"
+  ]
+}
