@@ -37,6 +37,8 @@ DEFINE_bool(run_global, true, "Run global optimization at the end");
 DEFINE_bool(tango_ori, false, "Use ground truth orientation");
 using namespace std;
 
+// ./IMULocalization_cli /opt/tmp/data_publish_v2/tang_handheld2 -model_path /opt/tmp/svr_cascade0308/
+
 int main(int argc, char **argv) {
   if (argc < 2) {
     cerr << "Usage: ./IMULocalization_cli <path-to-data>" << endl;

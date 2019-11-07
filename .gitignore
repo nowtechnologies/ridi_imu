@@ -1,0 +1,8 @@
+**/CMakeCache.txt
+**/Makefile
+**/CMakeFiles/**
+**/*.cmake
+**/*.a
+**/IMULocalization_cli
+**/*.swp
+**/*~
